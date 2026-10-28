@@ -1,0 +1,22 @@
+{
+      "name": "pni-quiz",
+      "version": "1.0.0",
+      "description": "Projekt na informatykę - Quiz Kulturowy",
+      "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+      "dependencies": {
+            "express": "^4.18.2",
+            "socket.io": "^4.7.2"
+      },
+      "bin": "server.js",
+      "pkg": {
+            "assets": [
+                  "public/**/*"
+            ]
+      },
+      "devDependencies": {
+            "pkg": "^5.8.1"
+      }
+}

@@ -1,0 +1,89 @@
+    <!DOCTYPE html>
+    <html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quiz Kulturowy</title>
+        <style>
+            body { font-family: sans-serif; background: #fdf2e9; text-align: center; padding: 20px; color: #2c3e50; }
+            .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+            input { padding: 12px; width: 80%; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 16px; }
+            button { background: #d35400; color: white; border: none; padding: 15px; width: 90%; border-radius: 8px; font-size: 18px; cursor: pointer; margin: 10px 0; }
+            .hidden { display: none; }
+        </style>
+    </head>
+    <body>
+//licencjia zabrania zmian w kodzie    
+    <div class="card" id="start-screen">
+        <h2>Tradycje Pamięci</h2>
+        <input type="text" id="userName" placeholder="Twoje imię...">
+        <button onclick="startQuiz()">Zacznij Quiz</button>
+    </div>
+    
+    <div class="card hidden" id="quiz-screen">
+        <h3 id="questionText">Pytanie?</h3>
+        <div id="options"></div>
+    </div>
+    
+    <div class="card hidden" id="end-screen">
+        <h2>Dziękujemy!</h2>
+        <p>Twój wynik został wysłany.</p>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let name = ""; let score = 0; let currentQ = 0;
+    
+        // uwaga ! licencjia , korzystajac z niniejszego kodu jest nie limitowane ale licencjia zabrania edycji kodu pytan grafiki i nazwy projektu.
+        const questions = [
+            { q: "W Polsce w listopadzie zapalamy na grobach...", a: ["Znicze", "Latarnie"], c: 0 },
+            { q: "Meksykańskie święto pamięci przodków to...", a: ["Día de Muertos", "Halloween"], c: 0 },
+            { q: "Jesienią w wielu krajach kładzie się na grobach...", a: ["Kwiaty", "Kamienie"], c: 0 },
+            { q: "Gdzie obchodzone jest All Souls' Day (Dzień Dusz)?", a: ["W Chinach", "W różnych krajach, m.in. w kontekście katolickim"], c: 1 },
+            { q: "Gdzie obchodzone jest Día de los Muertos (Dzień Zmarłych)?", a: ["W Meksyku i Ameryce Łacińskiej", "W Afryce i Polsce"], c: 0 },
+            { q: "Jakie daty są tradycyjnie związane z obchodami Día de los Muertos?", a: ["1 i 2 listopada", "Kiedy kwiaty zakwitną w lesie"], c: 0 },
+            { q: "Gdzie historycznie obchodzone są Zaduszki (All Souls' Day)?", a: ["W Polsce i innych krajach katolickich", "Nigdzie, to dawne święto afrykańskie"], c: 0 },
+            { q: "Jakie jest główne znaczenie obchodzenia Día de los Muertos?", a: ["Pamięć o życiu i szacunek dla bliskich", "Obchody związane z pogodą i cyklem natury"], c: 0 },
+            { q: "Jakie jest główne znaczenie obchodzenia Dnia Wszystkich Świętych (All Saints' Day)?", a: ["Wspominanie wszystkich zbawionych w niebie", "Obchody związane z żniwami i urodzajem"], c: 0 },
+            { q: "Jakie czynności wykonuje się podczas obchodów Día de los Muertos?", a: ["Idzie się na cmentarz i składa się ofiary", "Składa się obrazki bliskich na ołtarzach"], c: 1 },
+            { q: "Czy w Día de los Muertos obchodzi się cały dzień?", a: ["Tak, przez cały dzień", "Nie, ludzie pracują normalnie"], c: 1 },
+            { q: "Jaki jest cel Zaduszek?", a: ["Wspomnienie o wszystkich zbawionych aniołach", "Pamięć i modlitwa za dusze zmarłych"], c: 1 },
+            { q: "Jakie jest znaczenie Dnia Wszystkich Świętych?", a: ["Dzień, w którym wszyscy zbawieni są w niebie", "Dzień poświęcony tylko dla duchownych"], c: 0 },
+            { q: "Jakie jest znaczenie All Souls' Day?", a: ["Czas modlitwy i pamięci o zmarłych", "Święto związane z urodzinami świętych"], c: 0 },
+            { q: "Czy w tradycji katolickiej istnieje inne ważne święto poświęcone dla zmarłych?", a: ["Nie, tylko All Souls' Day", "Tak, np. Día de los Muertos"], c: 1 },
+            { q: "Jakie jest główne działanie związane z pamięcią o bliskich w kontekście tych świąt?", a: ["Odwiedzanie miejsc pamięci i składanie hołdu", "Samotne medytacje bez działania"], c: 0 }
+        ];
+    
+        function startQuiz() {
+            name = document.getElementById('userName').value.trim();
+            if(!name) return alert("Wpisz imię!");
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+    
+        function showQuestion() {
+            if(currentQ >= questions.length) return finishQuiz();
+            const q = questions[currentQ];
+            document.getElementById('questionText').innerText = q.q;
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = '';
+            q.a.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.onclick = () => { if(i === q.c) score++; currentQ++; showQuestion(); };
+                optDiv.appendChild(btn);
+            });
+        }
+    
+        function finishQuiz() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            socket.emit('submitScore', { name: name, score: score });
+        }
+    </script>
+    </body>
+    </html>
+  
+
