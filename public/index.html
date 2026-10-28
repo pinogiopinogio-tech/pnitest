@@ -1,89 +1,93 @@
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Quiz Kulturowy</title>
-        <style>
-            body { font-family: sans-serif; background: #fdf2e9; text-align: center; padding: 20px; color: #2c3e50; }
-            .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-            input { padding: 12px; width: 80%; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 16px; }
-            button { background: #d35400; color: white; border: none; padding: 15px; width: 90%; border-radius: 8px; font-size: 18px; cursor: pointer; margin: 10px 0; }
-            .hidden { display: none; }
-        </style>
-    </head>
-    <body>
-//licencjia zabrania zmian w kodzie    
-    <div class="card" id="start-screen">
-        <h2>Tradycje Pamięci</h2>
-        <input type="text" id="userName" placeholder="Twoje imię...">
-        <button onclick="startQuiz()">Zacznij Quiz</button>
-    </div>
-    
-    <div class="card hidden" id="quiz-screen">
-        <h3 id="questionText">Pytanie?</h3>
-        <div id="options"></div>
-    </div>
-    
-    <div class="card hidden" id="end-screen">
-        <h2>Dziękujemy!</h2>
-        <p>Twój wynik został wysłany.</p>
-    </div>
-    
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        let name = ""; let score = 0; let currentQ = 0;
-    
-        // uwaga ! licencjia , korzystajac z niniejszego kodu jest nie limitowane ale licencjia zabrania edycji kodu pytan grafiki i nazwy projektu.
-        const questions = [
-            { q: "W Polsce w listopadzie zapalamy na grobach...", a: ["Znicze", "Latarnie"], c: 0 },
-            { q: "Meksykańskie święto pamięci przodków to...", a: ["Día de Muertos", "Halloween"], c: 0 },
-            { q: "Jesienią w wielu krajach kładzie się na grobach...", a: ["Kwiaty", "Kamienie"], c: 0 },
-            { q: "Gdzie obchodzone jest All Souls' Day (Dzień Dusz)?", a: ["W Chinach", "W różnych krajach, m.in. w kontekście katolickim"], c: 1 },
-            { q: "Gdzie obchodzone jest Día de los Muertos (Dzień Zmarłych)?", a: ["W Meksyku i Ameryce Łacińskiej", "W Afryce i Polsce"], c: 0 },
-            { q: "Jakie daty są tradycyjnie związane z obchodami Día de los Muertos?", a: ["1 i 2 listopada", "Kiedy kwiaty zakwitną w lesie"], c: 0 },
-            { q: "Gdzie historycznie obchodzone są Zaduszki (All Souls' Day)?", a: ["W Polsce i innych krajach katolickich", "Nigdzie, to dawne święto afrykańskie"], c: 0 },
-            { q: "Jakie jest główne znaczenie obchodzenia Día de los Muertos?", a: ["Pamięć o życiu i szacunek dla bliskich", "Obchody związane z pogodą i cyklem natury"], c: 0 },
-            { q: "Jakie jest główne znaczenie obchodzenia Dnia Wszystkich Świętych (All Saints' Day)?", a: ["Wspominanie wszystkich zbawionych w niebie", "Obchody związane z żniwami i urodzajem"], c: 0 },
-            { q: "Jakie czynności wykonuje się podczas obchodów Día de los Muertos?", a: ["Idzie się na cmentarz i składa się ofiary", "Składa się obrazki bliskich na ołtarzach"], c: 1 },
-            { q: "Czy w Día de los Muertos obchodzi się cały dzień?", a: ["Tak, przez cały dzień", "Nie, ludzie pracują normalnie"], c: 1 },
-            { q: "Jaki jest cel Zaduszek?", a: ["Wspomnienie o wszystkich zbawionych aniołach", "Pamięć i modlitwa za dusze zmarłych"], c: 1 },
-            { q: "Jakie jest znaczenie Dnia Wszystkich Świętych?", a: ["Dzień, w którym wszyscy zbawieni są w niebie", "Dzień poświęcony tylko dla duchownych"], c: 0 },
-            { q: "Jakie jest znaczenie All Souls' Day?", a: ["Czas modlitwy i pamięci o zmarłych", "Święto związane z urodzinami świętych"], c: 0 },
-            { q: "Czy w tradycji katolickiej istnieje inne ważne święto poświęcone dla zmarłych?", a: ["Nie, tylko All Souls' Day", "Tak, np. Día de los Muertos"], c: 1 },
-            { q: "Jakie jest główne działanie związane z pamięcią o bliskich w kontekście tych świąt?", a: ["Odwiedzanie miejsc pamięci i składanie hołdu", "Samotne medytacje bez działania"], c: 0 }
-        ];
-    
-        function startQuiz() {
-            name = document.getElementById('userName').value.trim();
-            if(!name) return alert("Wpisz imię!");
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
-            showQuestion();
-        }
-    
-        function showQuestion() {
-            if(currentQ >= questions.length) return finishQuiz();
-            const q = questions[currentQ];
-            document.getElementById('questionText').innerText = q.q;
-            const optDiv = document.getElementById('options');
-            optDiv.innerHTML = '';
-            q.a.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.innerText = opt;
-                btn.onclick = () => { if(i === q.c) score++; currentQ++; showQuestion(); };
-                optDiv.appendChild(btn);
-            });
-        }
-    
-        function finishQuiz() {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('end-screen').classList.remove('hidden');
-            socket.emit('submitScore', { name: name, score: score });
-        }
-    </script>
-    </body>
-    </html>
-  
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Kulturowy</title>
+    <style>
+        body { font-family: sans-serif; background: #fdf2e9; text-align: center; padding: 20px; color: #2c3e50; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        input { padding: 12px; width: 80%; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 16px; }
+        button { background: #d35400; color: white; border: none; padding: 15px; width: 90%; border-radius: 8px; font-size: 18px; cursor: pointer; margin: 10px 0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+//licencjia zabrania zmian w kodzie
+<div class="card" id="start-screen">
+    <h2>Tradycje Pamięci</h2>
+    <input type="text" id="userName" placeholder="Twoje imię...">
+    <button onclick="startQuiz()">Zacznij Quiz</button>
+</div>
 
+<div class="card hidden" id="quiz-screen">
+    <h3 id="questionText">Pytanie?</h3>
+    <div id="options"></div>
+</div>
+
+<div class="card hidden" id="end-screen">
+    <h2>Dziękujemy!</h2>
+    <p>Twój wynik został wysłany.</p>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let name = ""; let score = 0; let currentQ = 0;
+    
+    const questions = [
+            { q: "Dlaczego w Polsce na cmentarzach zapalamy tysiące zniczy?", a: ["Żeby było jaśniej, bo jest ciemno", "Jako symbol pamięci i światła, które ma towarzyszyć duszy", "To tylko dekoracja dla turystów"], c: 1 },
+            { q: "Czym różnią się polskie Zaduszki od Halloween?", a: ["Zaduszki są głośne i pełne przebierańców", "Zaduszki to czas ciszy, modlitwy i spokojnej pamięci o bliskich", "Nie ma żadnych różnic"], c: 1 },
+            { q: "Jaki kwiat jest najczęściej kładziony na grobach w Polsce w listopadzie?", a: ["Róże", "Chryzantemy", "Słoneczniki"], c: 1 },
+            { q: "Co jest głównym celem odwiedzania cmentarzy przez polskie rodziny?", a: ["Spotkanie ze znajomymi na spacerze", "Wspólne pielęgnowanie grobów i oddanie szacunku przodkom", "Robienie zdjęć do mediów społecznościowych"], c: 1 },
+            { q: "Jaką atmosferę najczęściej kojarzymy z polskimi świętami listopadowymi?", a: ["Strach i niepokój", "Zadumę, spokój i powagę", "Wielką zabawę i muzykę"], c: 1 },
+            { q: "Jak nazywa się tradycyjny, słodki chleb, który przygotowuje się specjalnie na to święto?", a: ["Pan de muerto", "Chleb życia", "Słodka bułka"], c: 0 },
+            { q: "W jaki sposób Meksykanie podchodzą do tematu śmierci w tym święcie?", a: ["Bardzo smutno i w całkowitej ciszy", "Jako okazję do radosnego wspomnienia dobrych chwil z bliskimi", "Próbują o niej zapomnieć"], c: 1 },
+            { q: "Co najczęściej znajduje się na tradycyjnym meksykańskim ołtarzu (poza zdjęciami)?", a: ["Ulubione potrawy i napoje zmarłych", "Zabawki dla dzieci", "Świece w kształcie potworów"], c: 0 },
+            { q: "W wielu kulturach afrykańskich przodkowie są uważani za...", a: ["Postacie, których należy się bać", "Część rodziny, która nadal opiekuje się żyjącymi poprzez mądrość i tradycję", "Legendy, o których się zapomina"], c: 1 },
+            { q: "Jaka metoda jest kluczowa w Afryce, aby pamiętać o historii swoich przodków?", a: ["Czytanie książek historycznych", "Ustna tradycja – opowiadanie historii przez starszyznę (storytelling)", "Oglądanie filmów dokumentalnych"], c: 1 },
+            { q: "Dlaczego podczas spotkań rodzinnych w wielu krajach afrykańskich ważne jest wspólne jedzenie?", a: ["Bo to najtańsza forma rozrywki", "Jako symbol jedności rodziny i szacunku dla tych, którzy nas wykarmiali", "Żeby nikt nie był głodny"], c: 1 },
+            { q: "Jakie znaczenie mają 'starszyzna' (najstarsi członkowie rodu) w kulturach afrykańskich?", a: ["Są tylko osobami starszymi", "Są strażnikami pamięci i mądrości całego rodu", "Nie pełnią żadnej ważnej roli"], c: 1 },
+            { q: "W wielu tradycjach afrykańskich szacunek dla zmarłych przejawia się poprzez...", a: ["Budowanie wielkich pomników", "Przestrzeganie zasad i wartości, które zostawili po sobie przodkowie", "Organizowanie głośnych parad"], c: 1 },
+            { q: "W wielu krajach Europy, jak we Francji czy Włoszech, listopad to czas...", a: ["Wielkich festynów ulicznych", "Spokojnego odwiedzania miejsc pamięci i rodzin", "Konkursów na najstraszniejszy kostium"], c: 1 },
+            { q: "Jak nazywa się włoskie święto Wszystkich Świętych?", a: ["Ognissanti", "Bella Vita", "Santo Giorno"], c: 0 },
+            { q: "Dlaczego w Europie tradycja ta jest kojarzona z kwiatami chryzantem?", a: ["Bo są jedynymi kwiatami jesienią", "Ponieważ symbolizują pamięć i trwanie", "Bo mają bardzo intensywny zapach"], c: 1 },
+            { q: "Jaka atmosfera dominuje podczas 'La Toussaint' we Francji?", a: ["Hałas i zabawa", "Rodzinna zaduma i szacunek dla tradycji", "Strach przed duchami"], c: 1 },
+            { q: "Czym różni się podejście do zmarłych w tych krajach od komercyjnego Halloween?", a: ["Skupia się na relacji z osobami, które odeszły, a nie na straszeniu", "Jest znacznie droższe", "Nie ma żadnych różnic"], c: 0 },
+            { q: "Co oznacza japońskie słowo '日' w nazwie tego święta?", a: ["Duch", "dzień", "Natura"], c: 1 },
+            { q: "Jak katolicy w Japonii obchodzą to święto?", a: ["Bardzo głośno i hucznie", "W sposób spokojny, pełen szacunku dla tradycji chrześcijańskiej", "Tylko poprzez modlitwę online"], c: 1 },
+            { q: "Jak japońska kultura podchodzi do pamięci o przodkach?", a: ["Z dużym naciskiem na czystość i porządek w miejscach pamięci", "Przez organizowanie wielkich parad", "Poprzez unikanie tematów związanych ze śmiercią"], c: 0 },
+            { q: "Co jest ważnym elementem ceremonii w Japonii?", a: ["Palenie kadzideł i kwiaty", "Rozdawanie słodyczy dzieciom", "Przebieranie się za postacie z bajek"], c: 0 },
+            { q: "Dlaczego to święto jest ważne dla japońskich chrześcijan?", a: ["Bo pozwala im połączyć wiarę z szacunkiem do rodziny", "Bo jest dniem wolnym od pracy", "Bo kojarzy się z zachodnią modą"], c: 0 }
+        ];
+
+    function startQuiz() {
+        name = document.getElementById('userName').value.trim();
+        if(!name) return alert("Wpisz imię!");
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if(currentQ >= questions.length) return finishQuiz();
+        const q = questions[currentQ];
+        document.getElementById('questionText').innerText = q.q;
+        const optDiv = document.getElementById('options');
+        optDiv.innerHTML = '';
+        q.a.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => { if(i === q.c) score++; currentQ++; showQuestion(); };
+            optDiv.appendChild(btn);
+        });
+    }
+
+    function finishQuiz() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        socket.emit('submitScore', { name: name, score: score });
+    }
+</script>
+</body>
+</html>
